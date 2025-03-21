@@ -1,161 +1,162 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>최적 입찰가격 계산기</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        h2, h3 {
-            color: #333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background: white;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #007bff;
-            color: white;
-        }
-        td.bold {
-            font-weight: bold;
-            background-color: #ffeb3b;
-        }
-        input, select, button {
-            padding: 10px;
-            font-size: 16px;
-            margin-top: 5px;
-            display: block;
-            width: 220px;
-            text-align: center;
-        }
-        .button-container {
-            display: inline-block;
-            border: 2px solid black;
-            padding: 10px;
-            background-color: white;
-            cursor: pointer;
-        }
-        .button-container:hover {
-            background-color: #ddd;
-        }
-        .highlight {
-            background-color: #ffeb3b !important;
-        }
-    </style>
-    <script>
-        function formatNumber(num) {
-            return parseFloat(num).toLocaleString('ko-KR');
-        }
-
-        function updateBasePriceFormat() {
-            let basePriceInput = document.getElementById("basePrice");
-            let numericValue = basePriceInput.value.replace(/,/g, "");
-            if (!isNaN(numericValue) && numericValue !== "") {
-                basePriceInput.value = formatNumber(numericValue);
-            }
-        }
-
-        function calculateOptimizedBidPrice() {
-            let basePrice = parseFloat(document.getElementById("basePrice").value.replace(/,/g, ""));
-            let minBidRate = parseFloat(document.getElementById("minBidRate").value) / 100;
-            let optimalBidRate;
-
-            if (minBidRate === 0.82995) {
-                optimalBidRate = 0.84;
-            } else if (minBidRate === 0.87995) {
-                optimalBidRate = 0.86;
-            } else if (minBidRate === 0.88) {
-                optimalBidRate = 0.865;
-            } else {
-                optimalBidRate = minBidRate; // fallback
-            }
-
-            let prelimPrices = [];
-            let prelimPricesHTML = "<table><tr>";
-            for (let i = 0; i < 15; i++) {
-                let price = (basePrice * (0.97 + (0.06 * Math.random()))).toFixed(2);
-                prelimPrices.push(price);
-                prelimPricesHTML += `<td>${formatNumber(price)} 원</td>`;
-                if ((i + 1) % 5 === 0) prelimPricesHTML += "</tr><tr>";
-            }
-            prelimPricesHTML += "</tr></table>";
-
-            document.getElementById("prelimPrices").innerHTML = prelimPricesHTML;
-
-            let bidResults = "";
-            let minBidValue = Number.MAX_VALUE;
-            let minBidIndex = -1;
-
-            for (let j = 0; j < 10; j++) {
-                let selectedIndexes = [];
-                let selectedPrices = [];
-                for (let i = 0; i < 4; i++) {
-                    let randIndex;
-                    do {
-                        randIndex = Math.floor(Math.random() * 15);
-                    } while (selectedIndexes.includes(randIndex));
-                    selectedIndexes.push(randIndex);
-                    selectedPrices.push(prelimPrices[randIndex]);
-                }
-
-                let bidPrice = (selectedPrices.reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / 4 * optimalBidRate).toFixed(2);
-                let bidRate = ((bidPrice / basePrice) * 100).toFixed(3);
-
-                if (bidPrice < minBidValue) {
-                    minBidValue = bidPrice;
-                    minBidIndex = j;
-                }
-
-                bidResults += `<tr${j === minBidIndex ? ' class="highlight"' : ''}>
-                                <td>${j + 1}</td>
-                                <td>① ${formatNumber(selectedPrices[0])} 원<br>② ${formatNumber(selectedPrices[1])} 원<br>③ ${formatNumber(selectedPrices[2])} 원<br>④ ${formatNumber(selectedPrices[3])} 원</td>
-                                <td>${formatNumber(bidPrice)} 원</td>
-                                <td>${bidRate}%</td>
-                               </tr>`;
-            }
-
-            document.getElementById("bidResults").innerHTML = bidResults;
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>최적 입찰가 예측기</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    h2, h3 {
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    .highlight {
+      background-color: #ffeb3b !important;
+    }
+    input, select {
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      display: block;
+      width: 220px;
+    }
+    .button-container {
+      display: inline-block;
+      border: 2px solid black;
+      padding: 10px;
+      background-color: white;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .button-container:hover {
+      background-color: #ddd;
+    }
+  </style>
 </head>
 <body>
-    <h2>최적 입찰가격 계산기</h2>
-    <label>기초예비가격 (원): </label>
-    <input type="text" id="basePrice" value="" oninput="updateBasePriceFormat()"><br>
-    <label>낙찰하한율 (%): </label>
-    <select id="minBidRate">
-        <option value="">-- 선택하세요 --</option>
-        <option value="82.995">82.995%</option>
-        <option value="87.995">87.995%</option>
-        <option value="88.000">88.000%</option>
-    </select><br>
-    <div class="button-container" onclick="calculateOptimizedBidPrice()">계산하기</div>
+  <h2>최적 입찰가 예측기</h2>
+  <label>기초예비가격 (원):</label>
+  <input type="text" id="basePrice" oninput="formatInput(this)" placeholder="예: 1,000,000" />
 
-    <h3>복수예비가격 목록</h3>
-    <div id="prelimPrices"></div>
+  <label>낙찰하한율 (%):</label>
+  <select id="minBidRate">
+    <option value="">-- 선택하세요 --</option>
+    <option value="82.995">82.995%</option>
+    <option value="87.995">87.995%</option>
+    <option value="88.000">88.000%</option>
+  </select>
 
-    <h3>입찰 결과</h3>
-    <table>
-        <tr>
-            <th>번호</th>
-            <th>선택된 복수예비가격</th>
-            <th>최종 입찰가격 (원)</th>
-            <th>투찰율 (%)</th>
-        </tr>
-        <tbody id="bidResults"></tbody>
-    </table>
+  <div class="button-container" onclick="calculateOptimizedBidPrices()">계산하기</div>
+
+  <h3>추천 입찰가 목록</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>번호</th>
+        <th>선택된 복수예비가격</th>
+        <th>최종 입찰가격</th>
+        <th>투찰율 (%)</th>
+        <th>낙찰 확률 예측 (%)</th>
+      </tr>
+    </thead>
+    <tbody id="bidResults"></tbody>
+  </table>
+
+  <script>
+    function formatNumber(num) {
+      return parseFloat(num).toLocaleString("ko-KR");
+    }
+
+    function formatInput(input) {
+      input.value = input.value.replace(/[^0-9]/g, "");
+      if (input.value) {
+        input.value = parseInt(input.value).toLocaleString("ko-KR");
+      }
+    }
+
+    function calculateOptimizedBidPrices() {
+      const basePriceInput = document.getElementById("basePrice").value.replace(/,/g, "");
+      const bidRateInput = document.getElementById("minBidRate").value;
+
+      if (!basePriceInput || !bidRateInput) {
+        alert("기초예비가격과 낙찰하한율을 입력해주세요.");
+        return;
+      }
+
+      const basePrice = parseFloat(basePriceInput);
+      const minBidRate = parseFloat(bidRateInput) / 100;
+      let optimalBidRate;
+
+      if (minBidRate === 0.82995) optimalBidRate = 0.84;
+      else if (minBidRate === 0.87995) optimalBidRate = 0.86;
+      else if (minBidRate === 0.88) optimalBidRate = 0.865;
+      else optimalBidRate = minBidRate;
+
+      const prelimPrices = Array.from({ length: 15 }, () => (basePrice * (0.97 + 0.06 * Math.random())).toFixed(2));
+      const bidResults = [];
+
+      for (let i = 0; i < 20; i++) {
+        const selected = Array.from({ length: 4 }, () => prelimPrices[Math.floor(Math.random() * 15)]);
+        const average = selected.reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / 4;
+        const bidPrice = (average * optimalBidRate).toFixed(2);
+        const bidRate = ((bidPrice / basePrice) * 100).toFixed(3);
+
+        // 예시 낙찰 확률 모델: 83%와 가까울수록 높은 점수 (간단한 가중치 기반)
+        let score;
+        const target = minBidRate * 100;
+        const diff = Math.abs(parseFloat(bidRate) - target);
+        if (diff < 0.005) score = 95;
+        else if (diff < 0.010) score = 90;
+        else if (diff < 0.020) score = 85;
+        else score = Math.max(50, 100 - diff * 1000);
+
+        bidResults.push({
+          index: i + 1,
+          selected,
+          bidPrice,
+          bidRate,
+          score
+        });
+      }
+
+      // 정렬: 점수 높은 순 → 가격 낮은 순
+      bidResults.sort((a, b) => b.score - a.score || a.bidPrice - b.bidPrice);
+
+      const tbody = document.getElementById("bidResults");
+      tbody.innerHTML = "";
+      bidResults.forEach((row, i) => {
+        const tr = document.createElement("tr");
+        if (i === 0) tr.classList.add("highlight");
+
+        tr.innerHTML = `
+          <td>${row.index}</td>
+          <td>${row.selected.map((v, i) => `⓵⓶⓷⓸`[i] + " " + formatNumber(v) + " 원").join("<br>")}</td>
+          <td>${formatNumber(row.bidPrice)} 원</td>
+          <td>${row.bidRate}%</td>
+          <td>${row.score.toFixed(1)}%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
 </body>
 </html>
