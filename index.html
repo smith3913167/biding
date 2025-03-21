@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>최적 입찰가격 계산기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h2, h3 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        td.bold {
+            font-weight: bold;
+            background-color: #ffeb3b;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 5px;
+            display: block;
+            width: 200px;
+            text-align: center;
+        }
+        .button-container {
+            display: inline-block;
+            border: 2px solid black;
+            padding: 10px;
+            background-color: white;
+            cursor: pointer;
+        }
+        .button-container:hover {
+            background-color: #ddd;
+        }
+        .highlight {
+            background-color: #ffeb3b !important;
+        }
+    </style>
+    <script>
+        function formatNumber(num) {
+            return parseFloat(num).toLocaleString('ko-KR');
+        }
+        
+        function updateBasePriceFormat() {
+            let basePriceInput = document.getElementById("basePrice");
+            let numericValue = basePriceInput.value.replace(/,/g, "");
+            if (!isNaN(numericValue) && numericValue !== "") {
+                basePriceInput.value = formatNumber(numericValue);
+            }
+        }
+        
+        function calculateOptimizedBidPrice() {
+            let basePrice = parseFloat(document.getElementById("basePrice").value.replace(/,/g, ""));
+            let minBidRate = parseFloat(document.getElementById("minBidRate").value) / 100;
+            let optimalBidRate;
+            
+            if (minBidRate === 0.82995) {
+                optimalBidRate = 0.84;
+            } else if (minBidRate === 0.87995) {
+                optimalBidRate = 0.86;
+            } else {
+                optimalBidRate = 0.85;
+            }
+            
+            let prelimPrices = [];
+            let prelimPricesHTML = "<table><tr>";
+            for (let i = 0; i < 15; i++) {
+                let price = (basePrice * (0.97 + (0.06 * Math.random()))).toFixed(2);
+                prelimPrices.push(price);
+                prelimPricesHTML += `<td>${formatNumber(price)} 원</td>`;
+                if ((i + 1) % 5 === 0) prelimPricesHTML += "</tr><tr>";
+            }
+            prelimPricesHTML += "</tr></table>";
+            
+            document.getElementById("prelimPrices").innerHTML = prelimPricesHTML;
+            
+            let bidResults = "";
+            let minBidValue = Number.MAX_VALUE;
+            let minBidIndex = -1;
+            
+            for (let j = 0; j < 10; j++) {
+                let selectedIndexes = [];
+                let selectedPrices = [];
+                for (let i = 0; i < 4; i++) {
+                    let randIndex;
+                    do {
+                        randIndex = Math.floor(Math.random() * 15);
+                    } while (selectedIndexes.includes(randIndex));
+                    selectedIndexes.push(randIndex);
+                    selectedPrices.push(prelimPrices[randIndex]);
+                }
+                
+                let bidPrice = (selectedPrices.reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / 4 * optimalBidRate).toFixed(2);
+                let bidRate = ((bidPrice / basePrice) * 100).toFixed(3);
+                
+                if (bidPrice < minBidValue) {
+                    minBidValue = bidPrice;
+                    minBidIndex = j;
+                }
+                
+                bidResults += `<tr${j === minBidIndex ? ' class="highlight"' : ''}>
+                                <td>${j + 1}</td>
+                                <td>① ${formatNumber(selectedPrices[0])} 원<br>② ${formatNumber(selectedPrices[1])} 원<br>③ ${formatNumber(selectedPrices[2])} 원<br>④ ${formatNumber(selectedPrices[3])} 원</td>
+                                <td>${formatNumber(bidPrice)} 원</td>
+                                <td>${bidRate}%</td>
+                               </tr>`;
+            }
+            
+            document.getElementById("bidResults").innerHTML = bidResults;
+        }
+    </script>
+</head>
+<body>
+    <h2>최적 입찰가격 계산기</h2>
+    <label>기초예비가격 (원): </label>
+    <input type="text" id="basePrice" value="" oninput="updateBasePriceFormat()"><br>
+    <label>낙찰하한율 (%): </label>
+    <input type="number" id="minBidRate" value=""><br>
+    <div class="button-container" onclick="calculateOptimizedBidPrice()">계산하기</div>
+    
+    <h3>복수예비가격 목록</h3>
+    <div id="prelimPrices"></div>
+    
+    <h3>입찰 결과</h3>
+    <table>
+        <tr>
+            <th>번호</th>
+            <th>선택된 복수예비가격</th>
+            <th>최종 입찰가격 (원)</th>
+            <th>투찰율 (%)</th>
+        </tr>
+        <tbody id="bidResults"></tbody>
+    </table>
+</body>
+</html>
